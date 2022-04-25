@@ -8,6 +8,9 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.util.Set;
 
+import static com.github.imoliwer.cryptography.helper.Transformer.DECRYPTION_RULE;
+import static com.github.imoliwer.cryptography.helper.Transformer.ENCRYPTION_RULE;
+
 /**
  * This utility class holds the mutual usages of ciphers.
  */
@@ -48,6 +51,13 @@ final class MutualCipherUtil {
             }
 
             for (Transformer transformer : transformers) {
+                final int rules = transformer.rules();
+
+                if (
+                    mode == 1 && (rules & ENCRYPTION_RULE) != ENCRYPTION_RULE ||
+                    mode == 2 && (rules & DECRYPTION_RULE) != DECRYPTION_RULE
+                ) continue;
+
                 finalized = transformer.transform(mode, finalized);
             }
 
