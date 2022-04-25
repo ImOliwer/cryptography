@@ -29,7 +29,7 @@ public interface Converter<To, Options> {
     Converter<String, StringOptions> STRING = new Converter<>() {
         @Override
         public String convert(int opmode, byte[] from, StringOptions options) {
-            final boolean isBase64 = options.isBase64();
+            final boolean isBase64 = options != null && options.isBase64();
 
             if (opmode == 1) {
                 return isBase64 ? Base64.getEncoder().encodeToString(from) : new String(from, UTF_8);
