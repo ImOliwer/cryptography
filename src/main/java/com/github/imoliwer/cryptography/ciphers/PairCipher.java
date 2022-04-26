@@ -1,7 +1,6 @@
 package com.github.imoliwer.cryptography.ciphers;
 
-import com.github.imoliwer.cryptography.ByteCipher;
-import com.github.imoliwer.cryptography.helper.Converter;
+import com.github.imoliwer.cryptography.AbstractByteCipher;
 import com.github.imoliwer.cryptography.helper.Transformer;
 
 import java.security.Key;
@@ -12,13 +11,9 @@ import java.util.Set;
 import static com.github.imoliwer.cryptography.ciphers.MutualCipherUtil.basic;
 
 /**
- * This implementation of {@link ByteCipher} represents a 'key-pair' (private & public) cipher.
- *
- * @param <Type> the type to be converted to from bytes.
- * @param <Options> the options of said type.
+ * This implementation of {@link AbstractByteCipher} represents a 'key-pair' (private & public) cipher.
  */
-public final class PairCipher<Type, Options> extends
-    ByteCipher<Type, Options, Key, PairCipher<Type, Options>> {
+public final class PairCipher extends AbstractByteCipher<Key, PairCipher> {
     /** {@link PrivateKey} the key to decrypt with. **/
     private final PrivateKey privateKey;
 
@@ -28,34 +23,30 @@ public final class PairCipher<Type, Options> extends
     /**
      * Single cipher instantiation.
      *
-     * @param algorithm {@link String} the algorithm one wish to use.
-     * @param privateKey {@link PrivateKey} the private key to decrypt bytes with.
-     * @param publicKey {@link PublicKey} the public key to encrypt bytes with.
-     * @param converter {@link Converter} the converter to handle type conversion after completion.
+     * @param algorithm    {@link String} the algorithm one wish to use.
+     * @param privateKey   {@link PrivateKey} the private key to decrypt bytes with.
+     * @param publicKey    {@link PublicKey} the public key to encrypt bytes with.
      * @param transformers {@link Set<Transformer>} initial transformers to before conversion.
      */
     public PairCipher(
         String algorithm,
-        Converter<Type, Options> converter,
         Set<Transformer> transformers,
         PrivateKey privateKey,
         PublicKey publicKey
     ) {
-        super(algorithm, converter, transformers);
+        super(algorithm, transformers);
         this.privateKey = privateKey;
         this.publicKey = publicKey;
     }
 
-    /** @see ByteCipher#cipher(int, byte[], Object, Key) **/
+    /** @see AbstractByteCipher#cipher(int, byte[], Key) **/
     @Override
-    public Type cipher(int mode, byte[] handle, Options options) {
+    public byte[] cipher(int mode, byte[] handle) {
         return basic(
             mode,
             handle,
-            options,
             mode == 1 ? publicKey : privateKey,
             this.algorithm,
-            this.converter,
             this.transformers
         );
     }

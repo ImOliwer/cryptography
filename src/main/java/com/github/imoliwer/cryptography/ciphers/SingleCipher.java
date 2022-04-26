@@ -1,59 +1,51 @@
 package com.github.imoliwer.cryptography.ciphers;
 
-import com.github.imoliwer.cryptography.ByteCipher;
-import com.github.imoliwer.cryptography.helper.Converter;
+import com.github.imoliwer.cryptography.AbstractByteCipher;
 import com.github.imoliwer.cryptography.helper.Transformer;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Set;
 
 import static com.github.imoliwer.cryptography.ciphers.MutualCipherUtil.basic;
 
 /**
- * This implementation of {@link ByteCipher} represents a 'single key' cipher.
- *
- * @param <Type> the type to be converted to from bytes.
- * @param <Options> the options of said type.
+ * This implementation of {@link AbstractByteCipher} represents a 'single key' cipher.
  */
-public final class SingleCipher<Type, Options> extends
-    ByteCipher<Type, Options, Key, SingleCipher<Type, Options>> {
-    /** {@link Key} the key to cipher and decipher with. **/
-    private final Key key;
+public final class SingleCipher extends AbstractByteCipher<SecretKey, SingleCipher> {
+    /** {@link SecretKey} the key to cipher and decipher with. **/
+    private final SecretKey key;
 
     /**
      * Single cipher instantiation.
      *
-     * @param algorithm {@link String} the algorithm one wish to use.
-     * @param key {@link Key} the key to cipher and decipher bytes with.
-     * @param converter {@link Converter} the converter to handle type conversion after completion.
+     * @param algorithm    {@link String} the algorithm one wish to use.
+     * @param key          {@link Key} the key to cipher and decipher bytes with.
      * @param transformers {@link Set<Transformer>} initial transformers to before conversion.
      */
     public SingleCipher(
         String algorithm,
-        Converter<Type, Options> converter,
         Set<Transformer> transformers,
-        Key key
+        SecretKey key
     ) {
-        super(algorithm, converter, transformers);
+        super(algorithm, transformers);
         this.key = key;
     }
 
-    /** @see ByteCipher#cipher(int, byte[], Object, Key) **/
+    /** @see AbstractByteCipher#cipher(int, byte[], Key) **/
     @Override
-    public Type cipher(int mode, byte[] handle, Options options) {
-        return this.cipher(mode, handle, options, this.key);
+    public byte[] cipher(int mode, byte[] handle) {
+        return this.cipher(mode, handle, this.key);
     }
 
-    /** @see ByteCipher#cipher(int, byte[], Object, Key) **/
+    /** @see AbstractByteCipher#cipher(int, byte[], Key) **/
     @Override
-    public Type cipher(int mode, byte[] handle, Options options, Key secretKey) {
+    public byte[] cipher(int mode, byte[] handle, SecretKey secretKey) {
         return basic(
             mode,
             handle,
-            options,
             secretKey,
             this.algorithm,
-            this.converter,
             this.transformers
         );
     }

@@ -14,9 +14,9 @@ public interface Transformer {
     /**
      * Transform a byte array of data accordingly.
      *
-     * @param opmode {@link Integer} the operation mode that
-     * @param handle
-     * @return
+     * @param opmode {@link Integer} the operation mode that is being handled.
+     * @param handle {@link Byte} array of bytes to handle.
+     * @return {@link Byte} the array of bytes that was handled and will replace the old.
      */
     byte[] transform(int opmode, byte[] handle);
 
@@ -40,4 +40,14 @@ public interface Transformer {
      * @return {@link Integer}
      */
     int rules();
+
+    /**
+     * Check if this transformer consist of a specific rule.
+     *
+     * @param rule {@link Byte} the rule to check for.
+     * @return {@link Boolean} whether this transformer consists of this rule or not.
+     */
+    default boolean hasRule(byte rule) {
+        return (rules() & rule) == rule;
+    }
 }

@@ -1,6 +1,5 @@
 package com.github.imoliwer.cryptography.ciphers;
 
-import com.github.imoliwer.cryptography.helper.Converter;
 import com.github.imoliwer.cryptography.helper.Transformer;
 
 import javax.crypto.Cipher;
@@ -10,6 +9,7 @@ import java.util.Set;
 
 import static com.github.imoliwer.cryptography.helper.Transformer.DECRYPTION_RULE;
 import static com.github.imoliwer.cryptography.helper.Transformer.ENCRYPTION_RULE;
+import static com.github.imoliwer.cryptography.util.Checker.checkMode;
 
 /**
  * This utility class holds the mutual usages of ciphers.
@@ -23,47 +23,43 @@ final class MutualCipherUtil {
     /**
      * Call the basic cipher operation.
      */
-    static <Type, Options, K extends Key> Type basic(
+    static <K extends Key> byte[] basic(
         int mode,
         byte[] handle,
-        Options options,
         K key,
         String algorithm,
-        Converter<Type, Options> converter,
         Set<Transformer> transformers
     ) {
-        if (mode != 1 && mode != 2) {
-            throw new RuntimeException("Mode operation must be 1 (encryption) or 2 (decryption).");
-        }
+        checkMode(mode);
 
         try {
             final Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(mode, key);
 
-            final Class<? extends Type> conversionType = converter == null ? null : converter.getConversionType();
-            if (conversionType == null) {
-                throw new RuntimeException("Missing converter");
-            }
+            if (mode == 1)
+                handle = over(1, handle, transformers);
 
             byte[] finalized = cipher.doFinal(handle);
-            if (conversionType == byte[].class || conversionType == Byte[].class) {
-                return (Type) finalized;
-            }
+            if (mode == 2)
+                finalized = over(2, finalized, transformers);
 
-            for (Transformer transformer : transformers) {
-                final int rules = transformer.rules();
-
-                if (
-                    mode == 1 && (rules & ENCRYPTION_RULE) != ENCRYPTION_RULE ||
-                    mode == 2 && (rules & DECRYPTION_RULE) != DECRYPTION_RULE
-                ) continue;
-
-                finalized = transformer.transform(mode, finalized);
-            }
-
-            return converter.convert(mode, finalized, options);
+            return finalized;
         } catch (GeneralSecurityException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    /**
+     * Loop over the transformers and handle transformations accordingly.
+     */
+    private static byte[] over(int mode, byte[] initial, Set<Transformer> transformers) {
+        checkMode(mode);
+        for (Transformer transformer : transformers) {
+            if (!transformer.hasRule(mode == 1 ? ENCRYPTION_RULE : DECRYPTION_RULE)) {
+                continue;
+            }
+            initial = transformer.transform(mode, initial);
+        }
+        return initial;
     }
 }
